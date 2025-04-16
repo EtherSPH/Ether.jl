@@ -1,0 +1,14 @@
+# .gitignore file
+
+# ignore folders
+draft/**
+.VSCodeCounter/**
+example/result/**
+
+# ignore files
+Manifest.toml
+**.ipynb
+**.jld2
+**.h5
+**.hdf5
+**.hdf
