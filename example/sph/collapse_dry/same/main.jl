@@ -12,8 +12,6 @@ using OrderedCollections
 using KernelAbstractions
 using ProgressMeter
 
-# using CUDA
-
 using Ether
 using Ether.Macro
 using Ether.SPH.Macro
@@ -31,6 +29,9 @@ const n_threads = 30
 # const n_threads = 1024
 # * oneapi
 # config_dict["parallel"]["backend"] = "oneapi"
+# const n_threads = 256
+# * metal
+# config_dict["parallel"]["backend"] = "metal"
 # const n_threads = 256
 
 const backend = config_dict["parallel"]["backend"]

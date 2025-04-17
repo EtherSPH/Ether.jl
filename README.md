@@ -5,7 +5,7 @@ A particle-based simulation framework running on both cpu and gpu.
 # Dependencies
 
 - [Atomix.jl](https://github.com/JuliaConcurrent/Atomix.jl): atomic operations
-- [CodecZstd.jl](https://github.com/JuliaIO/CodecZstd.jl): compress the `.jld` files in a balanced between speed and compression-ratio
+- [CodecZstd.jl](https://github.com/JuliaIO/CodecZstd.jl): compress the `.jld` files in a balanced mode between speed and compression-ratio
 - [Dates.jl](https://docs.julialang.org/en/v1/stdlib/Dates/#:~:text=The%20Dates%20module%20provides%20two%20types%20for%20working,respectively%3B%20both%20are%20subtypes%20of%20the%20abstract%20TimeType.): get time-stamp
 - [JLD2.jl](https://github.com/JuliaIO/JLD2.jl): store and load raw data in `h5` format
 - [JSON.jl](https://github.com/JuliaIO/JSON.jl): configure the simulation in `json` format
