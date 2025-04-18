@@ -164,6 +164,8 @@ neighbour_system = Class.NeighbourSystem(
     n_threads = 32,
 )
 
+@info neighbour_system
+
 # * ===================== writer ===================== * #
 
 writer = DataIO.Writer(path_ = "example/result/sph/collapse_dry/same")

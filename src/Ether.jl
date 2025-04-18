@@ -27,4 +27,10 @@ export Class, Algorithm
 export DataIO
 export SPH
 
+using FIGlet
+
+function __init__()
+    FIGlet.render("Ether.jl", "standard")
+end
+
 end # module Ether
