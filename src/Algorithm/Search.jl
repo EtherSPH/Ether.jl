@@ -22,10 +22,10 @@
 ) where {IT <: Integer, FT <: AbstractFloat, Dimension <: AbstractDimension{2}}
     I::IT = @index(Global)
     @inbounds if ps_is_alive[I] == 1
-        # case here:
-        # 1. movable: cell index must be calculated again
-        # 2. immovable: if cell_index == 0, then calculate cell index
-        #               if cell_index != 0, cell index does not need to be calculated
+        # * case here:
+        # * 1. movable: cell index must be calculated again
+        # * 2. immovable: if cell_index == 0, then calculate cell index
+        # *               if cell_index != 0, cell index does not need to be calculated
         @inbounds cell_index::IT = ps_cell_index[I]
         @inbounds if INT[I, index_IsMovable] == 0 && cell_index != 0
             @inbounds particle_in_cell_index = Atomix.@atomic ns_contained_particle_index_count[cell_index] += 1
@@ -193,7 +193,7 @@ end
                     @inbounds dy::FT = FLOAT[I, index_PositionVec + 1] - FLOAT[J, index_PositionVec + 1]
                     dx, dy = periodic(domain, periodic_boundary, cell_index, neighbour_cell_index, dx, dy)
                     dr_square::FT = dx * dx + dy * dy
-                    if criterion(Dimension, I, J, INT, FLOAT, INDEX, PARAMETER, domain, dr_square)
+                    if criterion(Dimension, I, J, INT, FLOAT, INDEX, PARAMETER, domain, dr_square) == true
                         @inbounds INT[I, index_nCount] += 1
                         @inbounds neighbour_count::IT = INT[I, index_nCount]
                         @inbounds INT[I, index_nIndex + neighbour_count - 1] = J

@@ -13,4 +13,4 @@ abstract type AbstractDomain3D{IT <: Integer, FT <: AbstractFloat} <: AbstractDo
 
 # * ==================== Domain3D ==================== *
 
-# TODO: add 3d support
+# TODO: add 3D support

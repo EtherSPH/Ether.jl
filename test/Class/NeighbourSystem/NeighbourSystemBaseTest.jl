@@ -18,13 +18,9 @@
     # --|---|---|---|--
     # 4 | 6 | 6 | 6 | 4
     neighbour_system_base = Class.NeighbourSystemBase(parallel, domain)
-    @test Array(neighbour_system_base.neighbour_cell_index_count_) ==
-          [4, 6, 6, 6, 4, 6, 9, 9, 9, 6, 6, 9, 9, 9, 6, 4, 6, 6, 6, 4]
     @test size(neighbour_system_base.neighbour_cell_index_count_) == (20,)
     @test size(neighbour_system_base.neighbour_cell_index_list_) == (20, 9)
     cpu_neighbour_system_base = Class.mirror(neighbour_system_base)
-    @test cpu_neighbour_system_base.neighbour_cell_index_count_ ==
-          [4, 6, 6, 6, 4, 6, 9, 9, 9, 6, 6, 9, 9, 9, 6, 4, 6, 6, 6, 4]
     @test size(cpu_neighbour_system_base.neighbour_cell_index_count_) == (20,)
     @test size(cpu_neighbour_system_base.neighbour_cell_index_list_) == (20, 9)
 end

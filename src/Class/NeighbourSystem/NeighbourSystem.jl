@@ -24,6 +24,8 @@ abstract type AbstractNeighbourSystem{
     PeriodicBoundaryPolicy <: AbstractPeriodicBoundary,
 } end
 
+include("BuildPeriodic.jl")
+
 struct NeighbourSystem{
     IT <: Integer,
     FT <: AbstractFloat,
@@ -58,9 +60,11 @@ end
     Dimension <: AbstractDimension,
     PeriodicBoundary <: AbstractPeriodicBoundary,
 }
-    base = NeighbourSystemBase(parallel, domain; max_neighbour_number = max_neighbour_number, n_threads = n_threads)
+    base = NeighbourSystemBase(parallel, domain; max_neighbour_number = max_neighbour_number)
     _active_pair = ActivePair(parallel, active_pair)
-    return NeighbourSystem{IT, FT, CT, Backend, Dimension, PeriodicBoundary}(base, _active_pair)
+    neighbour_system = NeighbourSystem{IT, FT, CT, Backend, Dimension, PeriodicBoundary}(base, _active_pair)
+    host_buildPeriodic!(domain, neighbour_system; n_threads = n_threads)
+    return neighbour_system
 end
 
 function Base.show(
@@ -114,6 +118,21 @@ end
     PeriodicBoundary <: AbstractPeriodicBoundary,
 }
     KernelAbstractions.fill!(neighbour_system.base_.contained_particle_index_count_, IT(0))
+    return nothing
+end
+
+@inline function reset!(
+    neighbour_system::AbstractNeighbourSystem{IT, FT, CT, Backend, Dimension, PeriodicBoundary},
+)::Nothing where {
+    IT <: Integer,
+    FT <: AbstractFloat,
+    CT <: AbstractArray,
+    Backend,
+    Dimension <: AbstractDimension,
+    PeriodicBoundary <: AbstractPeriodicBoundary,
+}
+    KernelAbstractions.fill!(neighbour_system.base_.neighbour_cell_index_count_, IT(0))
+    KernelAbstractions.fill!(neighbour_system.base_.neighbour_cell_index_list_, IT(0))
     return nothing
 end
 

@@ -33,6 +33,45 @@ end
 
 # * ==================== Input ==================== * #
 
+@inline function IT(config_dict::AbstractDict)
+    return eval(Meta.parse(config_dict["parallel"]["int"]))
+end
+
+@inline function FT(config_dict::AbstractDict)
+    return eval(Meta.parse(config_dict["parallel"]["float"]))
+end
+
+@inline function dimension(config_dict::AbstractDict)
+    return config_dict["domain"]["dimension"]
+end
+
+@inline function Dimension(config_dict::AbstractDict)
+    dim = DataIO.dimension(config_dict)
+    if dim == 1
+        return Environment.Dimension1D
+    elseif dim == 2
+        return Environment.Dimension2D
+    elseif dim == 3
+        return Environment.Dimension3D
+    else
+        error("Unsupported dimension: $dim")
+    end
+end
+
+@inline function PeriodicBoundary(config_dict::AbstractDict)
+    if config_dict["neighbour_system"]["periodic_boundary"]["type"] == "none"
+        return Class.NonePeriodicBoundary
+    elseif config_dict["neighbour_system"]["periodic_boundary"]["type"] == "2D"
+        axis = config_dict["neighbour_system"]["periodic_boundary"]["axis"]
+        return Class.PeriodicBoundary2D{axis[1], axis[2]}
+    elseif config_dict["neighbour_system"]["periodic_boundary"]["type"] == "3D"
+        axis = config_dict["neighbour_system"]["periodic_boundary"]["axis"]
+        return Class.PeriodicBoundary3D{axis[1], axis[2], axis[3]}
+    else
+        error("Unsupported periodic boundary type: $(config_dict["neighbour_system"]["periodic_boundary"]["type"])")
+    end
+end
+
 @inline function ParallelExpr(config_dict::AbstractDict)::Expr
     IT = config_dict["parallel"]["int"]
     FT = config_dict["parallel"]["float"]
@@ -45,8 +84,8 @@ end
 end
 
 @inline function Domain(config_dict::AbstractDict)
-    IT = eval(Meta.parse(config_dict["parallel"]["int"]))
-    FT = eval(Meta.parse(config_dict["parallel"]["float"]))
+    IT = DataIO.IT(config_dict)
+    FT = DataIO.FT(config_dict)
     if config_dict["domain"]["dimension"] == 2
         return Class.Domain2D{IT, FT}(
             config_dict["domain"]["gap"],
@@ -71,13 +110,7 @@ end
     n_capacity = Base.invokelatest(f, n_particles)
     int_named_tuple = Utility.dict2namedtuple(config_dict["particle_system"]["int_named_tuple"])
     float_named_tuple = Utility.dict2namedtuple(config_dict["particle_system"]["float_named_tuple"])
-    if config_dict["domain"]["dimension"] == 2
-        Dimension = Environment.Dimension2D
-    elseif config_dict["domain"]["dimension"] == 3
-        Dimension = Environment.Dimension3D
-    else
-        error("Unsupported dimension: $(config_dict["domain"]["dimension"])")
-    end
+    Dimension = DataIO.Dimension(config_dict)
     return Class.ParticleSystem(Dimension, parallel, n_particles, n_capacity, int_named_tuple, float_named_tuple)
 end
 
@@ -88,18 +121,7 @@ end
     domain = Domain(config_dict)
     N = config_dict["domain"]["dimension"]
     active_pair = [v[1] => v[2] for v in config_dict["neighbour_system"]["active_pair"]]
-    if config_dict["neighbour_system"]["periodic_boundary"]["type"] == "none"
-        periodic_boundary = Class.NonePeriodicBoundary
-    else
-        axis = config_dict["neighbour_system"]["periodic_boundary"]["axis"]
-        if N == 2
-            periodic_boundary = Class.PeriodicBoundary2D{axis[1], axis[2]}
-        elseif N == 3
-            periodic_boundary = Class.PeriodicBoundary3D{axis[1], axis[2], axis[3]}
-        else
-            error("Unsupported dimension: $N")
-        end
-    end
+    periodic_boundary = DataIO.PeriodicBoundary(config_dict)
     return Class.NeighbourSystem(
         periodic_boundary,
         parallel,

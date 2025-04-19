@@ -101,6 +101,11 @@
         SPH.Library.sAccelerateMove!(@self_args; dt = 0.1)
         SPH.Library.sExtrapolatePressure!(@self_args; p0 = 0.0)
         SPH.Library.sKernelFilter!(@self_args; w0 = w0)
+        SPH.Library.sApplyPeriodic!(@self_args, domain, Class.NonePeriodicBoundary)
+        SPH.Library.sApplyPeriodic!(@self_args, domain, Class.PeriodicBoundary2D{false, false})
+        SPH.Library.sApplyPeriodic!(@self_args, domain, Class.PeriodicBoundary2D{true, false})
+        SPH.Library.sApplyPeriodic!(@self_args, domain, Class.PeriodicBoundary2D{false, true})
+        SPH.Library.sApplyPeriodic!(@self_args, domain, Class.PeriodicBoundary2D{true, true})
         return nothing
     end
     Algorithm.interaction!(particle_system, inter!; parameter = param)

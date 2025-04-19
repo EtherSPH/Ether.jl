@@ -7,7 +7,7 @@
   @ description:
  =#
 
-const kNameToContainer = Dict(
+const kNameToContainer = OrderedDict(
     "cpu" => "Array",
     "cuda" => "CUDA.CuArray",
     "rocm" => "AMDGPU.ROCArray",
@@ -15,7 +15,7 @@ const kNameToContainer = Dict(
     "metal" => "Metal.MtlArray",
 )
 
-const kNameToBackend = Dict(
+const kNameToBackend = OrderedDict(
     "cpu" => "KernelAbstractions.CPU()",
     "cuda" => "CUDA.CUDABackend()",
     "rocm" => "AMDGPU.ROCBackend()",
@@ -23,7 +23,13 @@ const kNameToBackend = Dict(
     "metal" => "Metal.MetalBackend()",
 )
 
-const kContainerToName =
-    Dict("Array" => "cpu", "CuArray" => "cuda", "ROCArray" => "rocm", "oneArray" => "oneapi", "MtlArray" => "metal")
+const kContainerToName = OrderedDict(
+    "Array" => "cpu",
+    "CuArray" => "cuda",
+    "ROCArray" => "rocm",
+    "oneArray" => "oneapi",
+    "MtlArray" => "metal",
+)
 
-const kNameToColor = Dict("cpu" => :magenta, "cuda" => :green, "rocm" => :red, "oneapi" => :blue, "metal" => :cyan)
+const kNameToColor =
+    OrderedDict("cpu" => :magenta, "cuda" => :green, "rocm" => :red, "oneapi" => :blue, "metal" => :cyan)

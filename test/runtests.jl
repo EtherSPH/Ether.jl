@@ -18,7 +18,7 @@ const DEVICE = "oneapi"
 include("Head/$(DEVICE).jl")
 @info "test on backend: $DEVICE"
 
-@testset "EtherParallelParticles" begin
+@testset "Ether" begin
     include("Utility/UtilityTest.jl")
     include("Environment/EnvironmentTest.jl")
     include("Math/MathTest.jl")

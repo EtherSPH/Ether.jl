@@ -10,6 +10,12 @@
 @testset "DataIO" begin
     config_dict = DataIO.template()
     replace!(config_dict, parallel)
+    config_dict["parallel"]["int"] = "Int32"
+    config_dict["parallel"]["float"] = "Float32"
+    @test DataIO.IT(config_dict) == Int32
+    @test DataIO.FT(config_dict) == Float32
+    @test DataIO.dimension(config_dict) == 2
+    @test DataIO.Dimension(config_dict) == Environment.Dimension2D
     @test config_dict["parallel"]["backend"] == DEVICE
     domain = DataIO.Domain(config_dict)
     @test Class.get_gap(domain) ≈ config_dict["domain"]["gap"]

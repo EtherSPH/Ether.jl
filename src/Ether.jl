@@ -30,7 +30,12 @@ export SPH
 using FIGlet
 
 function __init__()
-    FIGlet.render("Ether.jl", "standard")
+    FIGlet.render("Ether", "ANSI Shadow")
+    println("`Ether.jl` is a particle-based simulation framework running on both cpu and gpu supports:")
+    for (backend, color) in Environment.kNameToColor
+        printstyled("$backend  ", color = color)
+    end
+    println()
 end
 
 end # module Ether

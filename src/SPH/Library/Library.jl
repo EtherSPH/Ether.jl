@@ -14,6 +14,7 @@ using Ether.Math
 using Ether.Macro
 using Ether.SPH.Macro
 using Ether.SPH.Kernel
+using Ether.Class
 
 @inline function avoidzero(r::Real, h::Real)::typeof(r)
     return r * r + typeof(r)(0.01) * h * h
@@ -42,5 +43,6 @@ include("Continuity.jl")
 include("Pressure.jl")
 include("Viscosity.jl")
 include("Filter.jl")
+include("ApplyPeriodic.jl")
 
 end # module Library

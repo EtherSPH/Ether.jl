@@ -9,6 +9,7 @@
 
 module Environment
 
+using OrderedCollections
 using KernelAbstractions
 
 include("Dimension.jl")

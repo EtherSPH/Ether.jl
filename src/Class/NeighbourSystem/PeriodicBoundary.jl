@@ -25,6 +25,3 @@ const PeriodicBoundary3DAlongXY = PeriodicBoundary3D{true, true, false}
 const PeriodicBoundary3DAlongYZ = PeriodicBoundary3D{false, true, true}
 const PeriodicBoundary3DAlongZX = PeriodicBoundary3D{true, false, true}
 const PeriodicBoundary3DAlongXYZ = PeriodicBoundary3D{true, true, true}
-
-# TODO: add 3D support
-# TODO: add PeriodicBoundary support
