@@ -7,7 +7,7 @@
   @ description:
  =#
 
-using Pkg
+include("instantiate.jl")
 Pkg.add("Metal")
 Pkg.build()
 using Metal

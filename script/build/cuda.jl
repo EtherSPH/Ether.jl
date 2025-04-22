@@ -7,7 +7,7 @@
   @ description:
  =#
 
-using Pkg
+include("instantiate.jl")
 Pkg.add("CUDA")
 Pkg.build()
 using CUDA

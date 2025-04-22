@@ -214,11 +214,11 @@ end
         size(neighbour_system.base_.contained_particle_index_list_, 2)
     if PeriodicBoundary == Class.NonePeriodicBoundary
         config_dict["neighbour_system"]["periodic_boundary"]["type"] = "none"
-    elseif PeriodicBoundaryPolicy <: Class.PeriodicBoundary2D
+    elseif PeriodicBoundary <: Class.PeriodicBoundary2D
         config_dict["neighbour_system"]["periodic_boundary"]["type"] = "2D"
         config_dict["neighbour_system"]["periodic_boundary"]["axis"][1] = PeriodicBoundary.parameters[1]
         config_dict["neighbour_system"]["periodic_boundary"]["axis"][2] = PeriodicBoundary.parameters[2]
-    elseif PeriodicBoundaryPolicy <: Class.PeriodicBoundary3D
+    elseif PeriodicBoundary <: Class.PeriodicBoundary3D
         config_dict["neighbour_system"]["periodic_boundary"]["type"] = "3D"
         config_dict["neighbour_system"]["periodic_boundary"]["axis"][1] = PeriodicBoundary.parameters[1]
         config_dict["neighbour_system"]["periodic_boundary"]["axis"][2] = PeriodicBoundary.parameters[2]

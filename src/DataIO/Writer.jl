@@ -220,3 +220,7 @@ function Base.show(io::IO, writer::Writer)
     println(io, "  output tasks: $(length(writer.tasks_))")
     println(io, "}")
 end
+
+@inline function Writer(path::AbstractString)::Writer
+    return Writer(path_ = path)
+end

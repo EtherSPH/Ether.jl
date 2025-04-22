@@ -8,8 +8,7 @@
             # ! on Intel UHD Graphics 620 @ 1.15 GHz [Integrated]
  =#
 
-
- @kwdef struct SonType{IT <: Integer, FT <: AbstractFloat, Dimension}
+@kwdef struct SonType{IT <: Integer, FT <: AbstractFloat, Dimension}
     sound_speed::FT = 20.0
     background_pressure::FT = 0.0
     gamma::IT = 7

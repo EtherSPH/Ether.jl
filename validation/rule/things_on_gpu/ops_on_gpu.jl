@@ -7,19 +7,19 @@
   @ description: # * ops on gpu is allowed
  =#
 
- include("../../head/oneapi.jl")
+include("../../head/oneapi.jl")
 
- @inline function apply_op(op::Function, x, y)
-     return op(x, y)
- end
- 
- @kernel function some_op(x)
-     I = @index(Global)
-     @inbounds x[I, 1] = apply_op(+, x[I, 2], x[I, 3])
- end
- 
- a = rand(Float32, 4, 3) |> CT
- @info a
- some_op(Backend, 4)(a, ndrange = (4,))
- KernelAbstractions.synchronize(Backend)
- @info a
+@inline function apply_op(op::Function, x, y)
+    return op(x, y)
+end
+
+@kernel function some_op(x)
+    I = @index(Global)
+    @inbounds x[I, 1] = apply_op(+, x[I, 2], x[I, 3])
+end
+
+a = rand(Float32, 4, 3) |> CT
+@info a
+some_op(Backend, 4)(a, ndrange = (4,))
+KernelAbstractions.synchronize(Backend)
+@info a

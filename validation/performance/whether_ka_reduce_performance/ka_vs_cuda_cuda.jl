@@ -9,45 +9,45 @@
         # ! there must be something wrong... `KernelAbstractions.jl` is much faster than `CUDA.jl`
  =#
 
- include("../../head/cuda.jl")
+include("../../head/cuda.jl")
 
- using Random
- 
- const n = 4096
- const n_threads = 256
- const kInnerLoop = 1000_0000
- const kOuterLoop = 10
- 
- a = randn(FT, n) |> CT
- b = randn(FT, n) |> CT
- c = zeros(FT, n) |> CT
- ordered_index = Vector{Int}(1:n)
- disordered_index = shuffle(ordered_index) |> CT
- ordered_index = ordered_index |> CT
- 
- function device_vadd!(a, b, c, index)
-     I = threadIdx().x + (blockIdx().x - 1) * blockDim().x
-     if I <= n
-         @inbounds J = index[I]
-         step = 1
-         while step <= kInnerLoop
-             @inbounds c[I] += a[J] + b[J]
-             step += 1
-         end
-     end
-     return
- end
- 
- function host_vadd!(a, b, c, index)
-     @cuda threads = n_threads blocks = ceil(Int, n / n_threads) device_vadd!(a, b, c, index)
-     CUDA.synchronize()
- end
- 
- @info "warm up"
- host_vadd!(a, b, c, ordered_index)
- 
- @time begin
-     for i in 1:kOuterLoop
-         host_vadd!(a, b, c, disordered_index)
-     end
- end
+using Random
+
+const n = 4096
+const n_threads = 256
+const kInnerLoop = 1000_0000
+const kOuterLoop = 10
+
+a = randn(FT, n) |> CT
+b = randn(FT, n) |> CT
+c = zeros(FT, n) |> CT
+ordered_index = Vector{Int}(1:n)
+disordered_index = shuffle(ordered_index) |> CT
+ordered_index = ordered_index |> CT
+
+function device_vadd!(a, b, c, index)
+    I = threadIdx().x + (blockIdx().x - 1) * blockDim().x
+    if I <= n
+        @inbounds J = index[I]
+        step = 1
+        while step <= kInnerLoop
+            @inbounds c[I] += a[J] + b[J]
+            step += 1
+        end
+    end
+    return
+end
+
+function host_vadd!(a, b, c, index)
+    @cuda threads = n_threads blocks = ceil(Int, n / n_threads) device_vadd!(a, b, c, index)
+    CUDA.synchronize()
+end
+
+@info "warm up"
+host_vadd!(a, b, c, ordered_index)
+
+@time begin
+    for i in 1:kOuterLoop
+        host_vadd!(a, b, c, disordered_index)
+    end
+end

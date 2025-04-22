@@ -7,7 +7,7 @@
   @ description:
  =#
 
-using Pkg
+include("instantiate.jl")
 Pkg.add("oneAPI")
 Pkg.build()
 using oneAPI

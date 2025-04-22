@@ -4,7 +4,9 @@ authors = ["bcynuaa <bcynuaa@163.com>"]
 version = "0.1.0"
 
 [deps]
+AMDGPU = "21141c5a-9bdb-4563-92ae-f87d6854732e"
 Atomix = "a9b6321e-bd34-4604-b9c9-b65b8de01458"
+CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
 CodecZstd = "6b39b394-51ab-5f42-8807-6242bab2b4c2"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 FIGlet = "3064a664-84fe-4d92-92c7-ed492f3d8fae"
@@ -17,9 +19,12 @@ Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 ProgressMeter = "92933f4c-e287-5a05-a399-4b506db050ca"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 YAML = "ddb6d928-2868-570f-bddf-ab3f9cf99eb6"
+oneAPI = "8f75cd03-7ff8-4ecb-9b8f-daf728133b1b"
 
 [compat]
+AMDGPU = "1.2.7"
 Atomix = "^1.1.1"
+CUDA = "5.7.3"
 CodecZstd = "^0.8.6"
 Dates = "^1.11.0"
 FIGlet = "^0.2.2"
@@ -32,3 +37,4 @@ Pkg = "^1.11.0"
 ProgressMeter = "^1.10.4"
 Test = "^1.11.0"
 YAML = "^0.4.13"
+oneAPI = "2.0.1"

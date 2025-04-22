@@ -4,6 +4,8 @@ A particle-based simulation framework running on both cpu and gpu.
 
 # Dependencies
 
+This project is built on top of the following packages:
+
 - [Atomix.jl](https://github.com/JuliaConcurrent/Atomix.jl): atomic operations
 - [CodecZstd.jl](https://github.com/JuliaIO/CodecZstd.jl): compress the `.jld` files in a balanced mode between speed and compression-ratio
 - [Dates.jl](https://docs.julialang.org/en/v1/stdlib/Dates/#:~:text=The%20Dates%20module%20provides%20two%20types%20for%20working,respectively%3B%20both%20are%20subtypes%20of%20the%20abstract%20TimeType.): get time-stamp
@@ -22,3 +24,9 @@ To run the code on gpu, one of the following backends is required:
 - [AMDGPU.jl](https://github.com/JuliaGPU/AMDGPU.jl): AMD GPUs, both discrete and integrated
 - [oneAPI.jl](https://github.com/JuliaGPU/oneAPI.jl): Intel GPUs, both discrete and integrated
 - [Metal.jl](https://github.com/JuliaGPU/Metal.jl): Apple M-series GPUs
+
+Scripts to build these backends are included in `script/build` folder. Supposing you are a macOS user, you can run the following command to build the `Metal.jl` backend:
+
+```bash
+julia script/build/metal.jl
+```

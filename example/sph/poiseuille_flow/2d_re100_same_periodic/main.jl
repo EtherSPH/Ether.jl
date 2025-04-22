@@ -1,6 +1,6 @@
 #=
   @ author: bcynuaa <bcynuaa@163.com>
-  @ date: 2025/04/16 20:50:04
+  @ date: 2025/04/22 16:38:23
   @ license: MIT
   @ language: Julia
   @ declaration: `Ether.jl` A particle-based simulation framework running on both cpu and gpu.
@@ -16,10 +16,13 @@ using Ether
 using Ether.Macro
 using Ether.SPH.Macro
 
-config_dict = JSON.parsefile("example/result/sph/collapse_dry/same/config/config.json"; dicttype = OrderedDict)
+config_dict = JSON.parsefile(
+    "example/result/sph/poiseuille_flow/2d_re100_same_periodic/config/config.json";
+    dicttype = OrderedDict,
+)
+config_dict["parallel"]["float"] = "Float32"
 # * cpu
 # config_dict["parallel"]["backend"] = "cpu"
-# config_dict["parallel"]["float"] = "Float64"
 # const n_threads = 30
 # * cuda
 using CUDA
@@ -68,19 +71,35 @@ const gap0 = parameters.gap0 |> parallel
 const h0 = parameters.h0 |> parallel
 const mu0 = parameters.mu0 |> parallel
 const mu0_2 = 2 * mu0 |> parallel
-const gx = 0.0 |> parallel
-const gy = -9.8 |> parallel
-const c0 = 120.0 |> parallel
+const nu0 = mu0 / rho0 |> parallel
+const reynolds = parameters.reynolds |> parallel
+const c0 = parameters.c0 |> parallel
 const c02 = c0 * c0 |> parallel
-const sph_kernel = SPH.Kernel.CubicSpline{IT, FT, Int(dimension)}()
+const gx = parameters.gx |> parallel
+const gy = parameters.gy |> parallel
+const pipe_width = parameters.pipe_width |> parallel
+const l = pipe_width |> parallel
+const sph_kernel = SPH.Kernel.WendlandC2{IT, FT, Int(dimension)}()
+const periodic_boundary = typeof(ns).parameters[6]
 
-const total_time = parallel(3.0)
-const total_time_inv = parallel(1 / total_time)
-const dt = parallel(0.2 * h0 / c0)
-const output_interval = 400
+const dt = 0.2 * h0 / c0
+const total_time = 200.0 |> parallel
+const total_time_inv = 1 / total_time
+const output_interval = 1000
 const filter_interval = 20
 
 @inline eos(rho::Real) = c02 * (rho - rho0) + p0
+
+@inline function ux(y::Real; t::Real = 0)::typeof(y)
+    ux = gx / (2 * nu0) * y * (l - y)
+    for i in 0:10
+        ux -=
+            4 * gx * l * l / (nu0 * Math.power(pi * (2 * i + 1), Val(3))) *
+            sin(pi * y * (2 * i + 1) / l) *
+            exp(-Math.power(2 * i + 1, Val(2)) * pi * pi * nu0 * t / (l * l))
+    end
+    return ux
+end
 
 # * ===================== particle action definition ===================== * #
 
@@ -120,7 +139,7 @@ end
         return nothing
     elseif @tag(@i) == FLUID_TAG && @tag(@j) == WALL_TAG
         SPH.Library.iBalancedPressure!(@inter_args; dw = @dw(@ij))
-        SPH.Library.iClassicViscosity!(@inter_args; dw = @dw(@ij), mu = mu0)
+        SPH.Library.iClassicViscosity!(@inter_args; dw = @dw(@ij), mu = mu0_2)
         return nothing
     end
     return nothing
@@ -130,6 +149,7 @@ end
     @inbounds if @tag(@i) == FLUID_TAG
         SPH.Library.sGravity!(@self_args; gx = gx, gy = gy)
         SPH.Library.sAccelerateMove!(@self_args; dt = dt)
+        SPH.Library.sApplyPeriodic!(@self_args, domain, periodic_boundary)
     end
     return nothing
 end
