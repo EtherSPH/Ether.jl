@@ -1,6 +1,6 @@
 #=
   @ author: bcynuaa <bcynuaa@163.com>
-  @ date: 2025/04/16 20:50:04
+  @ date: 2025/05/12 15:53:12
   @ license: MIT
   @ language: Julia
   @ declaration: `Ether.jl` A particle-based simulation framework running on both cpu and gpu.
@@ -17,7 +17,7 @@ using Ether.Macro
 using Ether.SPH.Macro
 
 config_dict = JSON.parsefile(
-    joinpath(@__DIR__, "../../../result/sph/collapse_dry/same/config/config.json");
+    joinpath(@__DIR__, "../../..//result/sph/cruchaga/3d_same/config/config.json");
     dicttype = OrderedDict,
 )
 # * cpu
@@ -71,15 +71,16 @@ const h0 = parameters.h0 |> parallel
 const mu0 = parameters.mu0 |> parallel
 const mu0_2 = 1000 * mu0 |> parallel
 const gx = 0.0 |> parallel
-const gy = -9.8 |> parallel
-const c0 = 120.0 |> parallel
+const gy = 0.0 |> parallel
+const gz = -9.8 |> parallel
+const c0 = 10 * sqrt(2 * abs(gz) * parameters.fluid_z_len) |> parallel
 const c02 = c0 * c0 |> parallel
-const sph_kernel = SPH.Kernel.CubicSpline{IT, FT, Int(dimension)}()
+const sph_kernel = SPH.Kernel.WendlandC2{IT, FT, Int(dimension)}()
 
-const total_time = parallel(3.0)
+const total_time = 2.0 |> parallel
 const total_time_inv = parallel(1 / total_time)
 const dt = parallel(0.2 * h0 / c0)
-const output_interval = 400
+const output_interval = 100
 const filter_interval = 20
 
 @inline eos(rho::Real) = c02 * (rho - rho0) + p0
@@ -130,7 +131,7 @@ end
 
 @inline function sMomentum!(@self_args)::Nothing
     @inbounds if @tag(@i) == FLUID_TAG
-        SPH.Library.sGravity!(@self_args; gx = gx, gy = gy)
+        SPH.Library.sGravity!(@self_args; gx = gx, gy = gy, gz = gz)
         SPH.Library.sAccelerateMove!(@self_args; dt = dt)
     end
     return nothing

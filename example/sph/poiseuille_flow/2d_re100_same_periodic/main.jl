@@ -17,7 +17,7 @@ using Ether.Macro
 using Ether.SPH.Macro
 
 config_dict = JSON.parsefile(
-    "example/result/sph/poiseuille_flow/2d_re100_same_periodic/config/config.json";
+    joinpath(@__DIR__, "../../../result/sph/poiseuille_flow/2d_re100_same_periodic/config/config.json");
     dicttype = OrderedDict,
 )
 config_dict["parallel"]["float"] = "Float32"
@@ -104,7 +104,7 @@ end
 # * ===================== particle action definition ===================== * #
 
 @inline function sComputeKernelAndiContinuity!(@self_args)::Nothing
-    @with_neighbour @inbounds if @tag(@i) == FLUID_TAG && @tag(@j) == FLUID_TAG
+    @with_neighbours @inbounds if @tag(@i) == FLUID_TAG && @tag(@j) == FLUID_TAG
         SPH.Library.iValueGradient!(@inter_args, sph_kernel)
         SPH.Library.iClassicContinuity!(@inter_args; dw = @dw(@ij))
     elseif @tag(@i) == FLUID_TAG && @tag(@j) == WALL_TAG
@@ -154,7 +154,7 @@ end
     return nothing
 end
 
-@inline function iFilter(@inter_args)::Nothing
+@inline function iFilter!(@inter_args)::Nothing
     @inbounds if @tag(@i) == FLUID_TAG && @tag(@j) == FLUID_TAG
         SPH.Library.iKernelFilter!(@inter_args; w = @w(@ij))
         return nothing
@@ -162,7 +162,7 @@ end
     return nothing
 end
 
-@inline function sFilter(@self_args)::Nothing
+@inline function sFilter!(@self_args)::Nothing
     @inbounds if @tag(@i) == FLUID_TAG
         SPH.Library.sKernelFilter!(@self_args; w0 = SPH.Kernel.value0(@h(@i), sph_kernel))
         SPH.Library.sVolume!(@self_args)
@@ -207,8 +207,8 @@ function main(step = :first)
             criterion = Algorithm.symmetryCriterion,
         )
         if step % filter_interval == 0
-            Algorithm.interaction!(dps, iFilter; n_threads = n_threads)
-            Algorithm.selfaction!(dps, sFilter; n_threads = n_threads)
+            Algorithm.interaction!(dps, iFilter!; n_threads = n_threads)
+            Algorithm.selfaction!(dps, sFilter!; n_threads = n_threads)
         end
         if step % output_interval == 0
             write_step += 1
@@ -233,5 +233,7 @@ function main(step = :first)
             valuecolor = color,
         )
     end
+    DataIO.wait!(writer)
+    VTK.VTP.generate(writer, [:Mass, :Density, :VelocityVec, :Pressure, :Tag]; names = ["fluid", "wall"], n_threads = 4)
     return nothing
 end

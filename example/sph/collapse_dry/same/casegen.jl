@@ -168,7 +168,7 @@ neighbour_system = Class.NeighbourSystem(
 
 # * ===================== writer ===================== * #
 
-writer = DataIO.Writer("example/result/sph/collapse_dry/same")
+writer = DataIO.Writer(joinpath(@__DIR__, "../../../result/sph/collapse_dry/same"))
 DataIO.rmdir(writer)
 DataIO.mkdir(writer)
 

@@ -17,6 +17,7 @@ include("Macro/Macro.jl")
 include("Class/Class.jl")
 include("Algorithm/Algorithm.jl")
 include("DataIO/DataIO.jl")
+include("VTK/VTK.jl")
 include("SPH/SPH.jl")
 
 export Utility
@@ -24,18 +25,20 @@ export Environment, Math
 export Geometry
 export Macro
 export Class, Algorithm
-export DataIO
+export DataIO, VTK
 export SPH
 
 using FIGlet
 
 function __init__()
+    println("="^100)
     println("`Ether.jl` is a particle-based simulation framework running on both cpu and gpu supports:")
     for (backend, color) in Environment.kNameToColor
         printstyled("$backend  ", color = color)
     end
     println()
     FIGlet.render("Ether", "ANSI Shadow")
+    println("="^100)
 end
 
 end # module Ether

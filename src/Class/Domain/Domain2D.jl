@@ -132,7 +132,7 @@ end
 @inline function indexCartesianFromPosition(
     x::FT,
     y::FT,
-    domain::AbstractDomain{IT, FT, Dimension2D},
+    domain::AbstractDomain2D{IT, FT},
 )::Tuple{IT, IT} where {IT <: Integer, FT <: AbstractFloat}
     i::IT = min(get_n_x(domain), device_floor(IT, (x - get_first_x(domain)) * get_gap_x_inv(domain)) + 1)
     i = max(IT(1), i)
@@ -144,7 +144,7 @@ end
 @inline function indexLinearFromPosition(
     x::FT,
     y::FT,
-    domain::AbstractDomain{IT, FT, Dimension2D},
+    domain::AbstractDomain2D{IT, FT},
 )::IT where {IT <: Integer, FT <: AbstractFloat}
     i, j = indexCartesianFromPosition(x, y, domain)
     return indexCartesianToLinear(i, j, domain)

@@ -57,7 +57,31 @@ end
     index_IsMovable::IT,
     index_PositionVec::IT,
 ) where {IT <: Integer, FT <: AbstractFloat, Dimension <: AbstractDimension{3}}
-    # TODO: add 3D support
+    I::IT = @index(Global)
+    @inbounds if ps_is_alive[I] == 1
+        # * case here:
+        # * 1. movable: cell index must be calculated again
+        # * 2. immovable: if cell_index == 0, then calculate cell index
+        # *               if cell_index != 0, cell index does not need to be calculated
+        @inbounds cell_index::IT = ps_cell_index[I]
+        @inbounds if INT[I, index_IsMovable] == 0 && cell_index != 0
+            @inbounds particle_in_cell_index = Atomix.@atomic ns_contained_particle_index_count[cell_index] += 1
+            @inbounds ns_contained_particle_index_list[cell_index, particle_in_cell_index] = I
+        else
+            @inbounds x::FT = FLOAT[I, index_PositionVec]
+            @inbounds y::FT = FLOAT[I, index_PositionVec + 1]
+            @inbounds z::FT = FLOAT[I, index_PositionVec + 2]
+            if Class.inside(x, y, z, domain)
+                cell_index = Class.indexLinearFromPosition(x, y, z, domain)
+                @inbounds ps_cell_index[I] = cell_index
+                particle_in_cell_index = Atomix.@atomic ns_contained_particle_index_count[cell_index] += 1
+                @inbounds ns_contained_particle_index_list[cell_index, particle_in_cell_index] = I
+            else
+                @inbounds ps_is_alive[I] = 0
+                @inbounds ps_cell_index[I] = 0
+            end
+        end
+    end
 end
 
 @inline function host_insertParticlesIntoCells!(
@@ -197,8 +221,9 @@ end
                         @inbounds INT[I, index_nCount] += 1
                         @inbounds neighbour_count::IT = INT[I, index_nCount]
                         @inbounds INT[I, index_nIndex + neighbour_count - 1] = J
-                        @inbounds FLOAT[I, index_nRVec + 2 * (neighbour_count - 1)] = dx
-                        @inbounds FLOAT[I, index_nRVec + 2 * neighbour_count - 1] = dy
+                        index_dr_vec::IT = index_nRVec + 2 * (neighbour_count - 1)
+                        @inbounds FLOAT[I, index_dr_vec + 0] = dx
+                        @inbounds FLOAT[I, index_dr_vec + 1] = dy
                         @inbounds FLOAT[I, index_nR + neighbour_count - 1] = sqrt(dr_square)
                     end
                 end
@@ -231,7 +256,37 @@ end
     action!::Function,
     PARAMETER,
 ) where {IT <: Integer, FT <: AbstractFloat, Dimension <: AbstractDimension{3}}
-    # TODO: add 3D support
+    I::IT = @index(Global)
+    @inbounds if ps_is_alive[I] == 1
+        @inbounds INT[I, index_nCount] = 0
+        @inbounds cell_index::IT = ps_cell_index[I]
+        @inbounds n_neighbour_cells::IT = ns_neighbour_cell_index_count[cell_index]
+        for i_neighbour_cell::IT in 1:n_neighbour_cells
+            @inbounds neighbour_cell_index::IT = ns_neighbour_cell_index_list[cell_index, i_neighbour_cell]
+            @inbounds n_particles_in_neighbour_cell::IT = ns_contained_particle_index_count[neighbour_cell_index]
+            for i_particle::IT in 1:n_particles_in_neighbour_cell
+                @inbounds J::IT = ns_contained_particle_index_list[neighbour_cell_index, i_particle]
+                @inbounds if I != J && ns_adjacency_matrix[INT[I, index_Tag], INT[J, index_Tag]] == 1
+                    @inbounds dx::FT = FLOAT[I, index_PositionVec] - FLOAT[J, index_PositionVec]
+                    @inbounds dy::FT = FLOAT[I, index_PositionVec + 1] - FLOAT[J, index_PositionVec + 1]
+                    @inbounds dz::FT = FLOAT[I, index_PositionVec + 2] - FLOAT[J, index_PositionVec + 2]
+                    dx, dy, dz = periodic(domain, periodic_boundary, cell_index, neighbour_cell_index, dx, dy, dz)
+                    dr_square::FT = dx * dx + dy * dy + dz * dz
+                    if criterion(Dimension, I, J, INT, FLOAT, INDEX, PARAMETER, domain, dr_square) == true
+                        @inbounds INT[I, index_nCount] += 1
+                        @inbounds neighbour_count::IT = INT[I, index_nCount]
+                        @inbounds INT[I, index_nIndex + neighbour_count - 1] = J
+                        index_dr_vec::IT = index_nRVec + 3 * (neighbour_count - 1)
+                        @inbounds FLOAT[I, index_dr_vec + 0] = dx
+                        @inbounds FLOAT[I, index_dr_vec + 1] = dy
+                        @inbounds FLOAT[I, index_dr_vec + 2] = dz
+                        @inbounds FLOAT[I, index_nR + neighbour_count - 1] = sqrt(dr_square)
+                    end
+                end
+            end
+        end
+        action!(Dimension, I, INT, FLOAT, INDEX, PARAMETER)
+    end
 end
 
 @inline function host_findNeighbourParticlesFromCells!(

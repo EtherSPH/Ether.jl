@@ -88,4 +88,45 @@
             @test sort(cpu_particle_system.base_.int_[i, n_index:(n_index + count - 1)]) == res[i]
         end
     end
+    @testset "Search 3D" begin
+        domain = Class.Domain3D{Int32, Float32}(0.15, 0, 0, 0, 0.4, 0.5, 0.7)
+        ns = Class.NeighbourSystem(Class.NonePeriodicBoundary, parallel, domain, [1=>1, 1=>2, 2=>1, 2=>2])
+        dimension = 3
+        max_neighbour_number = 20
+        int_named_tuple = (Tag = 1, IsMovable = 1, nCount = 1, nIndex = max_neighbour_number)
+        float_named_tuple = (
+            PositionVec = dimension,
+            VelocityVec = dimension,
+            dVelocityVec = dimension,
+            AccelerationVec = dimension,
+            Mass = 1,
+            Volume = 1,
+            Density = 1,
+            dDensity = 1,
+            Pressure = 1,
+            Gap = 1,
+            H = 1,
+            SumWeight = 1,
+            SumWeightedDensity = 1,
+            SumWeightedPressure = 1,
+            nW = max_neighbour_number,
+            nDW = max_neighbour_number,
+            nHInv = max_neighbour_number,
+            nRVec = max_neighbour_number * dimension,
+            nR = max_neighbour_number,
+        )
+        cuboid = Geometry.Cuboid(0.0, 0, 0, 0.2, 0.3, 0.4);
+        n = Geometry.count(0.1, cuboid)
+        ps = Class.HostParticleSystem{Int32, Float32, Environment.Dimension3D}(n, int_named_tuple, float_named_tuple)
+        Class.count!(ps, n)
+        positions, volumes, gaps = Geometry.create(0.1, cuboid; parallel = true)
+        ps[:PositionVec] = positions
+        ps[:Volume] = volumes
+        ps[:Gap] = gaps
+        ps[:Tag] = 1;
+        dps = Class.mirror(parallel, ps)
+        Algorithm.search!(dps, domain, ns);
+        Class.to!(ps, dps)
+        @test ps[:nCount] == IT[6, 6, 9, 9, 6, 6, 9, 9, 13, 13, 9, 9, 9, 9, 13, 13, 9, 9, 6, 6, 9, 9, 6, 6]
+    end
 end

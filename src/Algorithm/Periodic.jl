@@ -105,4 +105,28 @@ end
 
 # * ==================== periodic boundary 3D ==================== * #
 
-# TODO: add 3D support
+@inline function periodic(
+    domain::AbstractDomain{IT, FT, Dimension},
+    ::Type{<:NonePeriodicBoundary},
+    cell_index::IT,
+    neighbour_cell_index::IT,
+    dx::FT,
+    dy::FT,
+    dz::FT,
+)::Tuple{FT, FT, FT} where {IT <: Integer, FT <: AbstractFloat, Dimension <: AbstractDimension{3}}
+    return dx, dy, dz
+end
+
+@inline function periodic(
+    domain::AbstractDomain{IT, FT, Dimension},
+    ::Type{PeriodicBoundary3D{false, false, false}},
+    cell_index::IT,
+    neighbour_cell_index::IT,
+    dx::FT,
+    dy::FT,
+    dz::FT,
+)::Tuple{FT, FT, FT} where {IT <: Integer, FT <: AbstractFloat, Dimension <: AbstractDimension{3}}
+    return dx, dy, dz
+end
+
+# TODO: add 3D support for more 3D periodic boundary conditions

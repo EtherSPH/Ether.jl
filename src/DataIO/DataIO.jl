@@ -23,4 +23,6 @@ using Ether.Class
 include("Writer.jl")
 include("Config.jl")
 
+export AbstractWriter
+
 end # module DataIO

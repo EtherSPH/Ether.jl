@@ -35,12 +35,10 @@
     param = (k = FT(2), b = IT(2))
     cpu_ps.base_.int_[:, 3] .= n_neighbours
     Class.to!(ps, cpu_ps)
-    # @inline function self!(DIMENSION, I, INT, FLOAT, INDEX, PARAMETER)
     @inline function self!(@self_args)
         @inbounds FLOAT[I, INDEX.PositionVec] = PARAMETER[1]
         @inbounds FLOAT[I, INDEX.PositionVec + 1] = PARAMETER[2]
     end
-    # @inline function inter!(DIMENSION, I, NI, INT, FLOAT, INDEX, PARAMETER)
     @inline function inter!(@inter_args)
         @inbounds FLOAT[I, INDEX.PositionVec] *= PARAMETER.k
         @inbounds FLOAT[I, INDEX.PositionVec + 1] *= PARAMETER.k

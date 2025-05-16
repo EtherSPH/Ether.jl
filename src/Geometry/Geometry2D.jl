@@ -80,8 +80,8 @@ end
     volumes = zeros(T, n)
     gaps = zeros(T, n)
     function single!(i)
-        i_x = mod(i, n_x)
-        i_y = div(i - 1, n_x) + 1
+        i_x = mod1(i, n_x)
+        i_y = cld(i, n_x)
         x = get_first_x(rectangle) + (i_x - 0.5) * dx
         y = get_first_y(rectangle) + (i_y - 0.5) * dy
         positions[i, :] .= [x, y]
@@ -210,11 +210,12 @@ struct Circle{T <: Real} <: AbstractGeometry{2}
     center_x_::T
     center_y_::T
     radius_::T
+    radius_square_::T
 end
 
 function Circle{T}(x::Real, y::Real, radius::Real) where {T <: Real}
     @assert radius > 0 "radius must be greater than 0"
-    return Circle{T}(T(x), T(y), T(radius))
+    return Circle{T}(T(x), T(y), T(radius), T(radius * radius))
 end
 
 function Circle(x::Real, y::Real, radius::Real)
@@ -234,6 +235,10 @@ end
 
 @inline function get_radius(circle::Circle{T})::T where {T <: Real}
     return circle.radius_
+end
+
+@inline function get_radius_square(circle::Circle{T})::T where {T <: Real}
+    return circle.radius_square_
 end
 
 @inline function radius(x::Real, y::Real, circle::Circle{T}) where {T <: Real}

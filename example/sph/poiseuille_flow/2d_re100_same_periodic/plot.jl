@@ -39,7 +39,7 @@ with_theme(theme_latexfonts()) do
         xtickalign = 1,
         ytickalign = 1,
     )
-    s = scatter!(axes, x, y, color = vel, colormap = :roma, markersize = 6, nan_color = :gray)
+    s = scatter!(axes, x, y, color = vel, colormap = :roma, markersize = 5, nan_color = :gray)
     Colorbar(
         fig[1, 2],
         s,

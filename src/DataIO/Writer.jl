@@ -69,10 +69,14 @@ end
     end
 end
 
+@inline function get_vtp_path(writer::AbstractWriter)::AbstractString
+    return joinpath(writer.path_, "vtp")
+end
+
 # * ==================== AbsrtactWriter dir function ==================== * #
 
 @inline function mkdir(writer::AbstractWriter)::Nothing
-    for get_path_function in [get_path, get_config_path, get_raw_path]
+    for get_path_function in [get_path, get_config_path, get_raw_path, get_vtp_path]
         Utility.assuredir(get_path_function(writer))
     end
     return nothing
@@ -127,7 +131,7 @@ end
     end
     task = Threads.@spawn begin
         @inbounds n_particles = Class.count(particle_system)
-        @inbounds mask = particle_system.base_.is_alive_[1:n_particles] .== 1
+        @inbounds mask = @views particle_system.base_.is_alive_[1:n_particles] .== 1
         @inbounds write(file, "raw/int", particle_system.base_.int_[1:n_particles, :][mask, :])
         @inbounds write(file, "raw/float", particle_system.base_.float_[1:n_particles, :][mask, :])
         close(file)
@@ -212,7 +216,7 @@ end
 
 function Base.show(io::IO, writer::Writer)
     println(io, "Writer{")
-    println(io, "  path_ = ", writer.path_)
+    println(io, "  path: $(get_path(writer))")
     println(io, "  config path: $(get_config_path(writer))")
     println(io, "  raw path: $(get_raw_path(writer))")
     println(io, "  raw_file_name: $(get_raw_file_name(writer, 0))")

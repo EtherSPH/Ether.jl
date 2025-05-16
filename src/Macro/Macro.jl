@@ -58,8 +58,8 @@ macro cj()
 end
 
 # an amazing macro allow use `interaction` in `selfaction` arg-passing
-macro with_neighbour(expr)
-    return esc(:(NI::eltype(INT) = 0;
+macro with_neighbours(expr)
+    return esc(:(NI = eltype(INT)(0);
     @inbounds while NI < INT[I, INDEX.nCount]
         $expr
         NI += 1
@@ -70,6 +70,6 @@ export @self_args, @inter_args, @criterion_args
 export @int, @float
 export @i, @j, @ij
 export @ci, @cj
-export @with_neighbour
+export @with_neighbours
 
 end # module Macro

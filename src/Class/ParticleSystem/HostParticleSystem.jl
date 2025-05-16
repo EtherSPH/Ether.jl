@@ -44,7 +44,7 @@ end
     return getfield(get_index(ps.named_index_), name)
 end
 
-@inline function get_capcacity(
+@inline function get_capacity(
     ps::AbstractHostParticleSystem{IT, FT, Dimension},
     name::Symbol,
 )::Integer where {IT <: Integer, FT <: AbstractFloat, Dimension <: AbstractDimension}
@@ -60,7 +60,7 @@ end
 
 @inline function set!(
     particle_system::AbstractHostParticleSystem{IT, FT, Dimension},
-    int::Array{<:Integer, 2},
+    int::AbstractArray{<:Integer, 2},
 )::Nothing where {IT <: Integer, FT <: AbstractFloat, Dimension <: AbstractDimension}
     m, n = size(int)
     @assert n == get_n_int_capacity(particle_system)
@@ -72,7 +72,7 @@ end
 
 @inline function set!(
     particle_system::AbstractHostParticleSystem{IT, FT, Dimension},
-    float::Array{<:AbstractFloat, 2},
+    float::AbstractArray{<:AbstractFloat, 2},
 )::Nothing where {IT <: Integer, FT <: AbstractFloat, Dimension <: AbstractDimension}
     m, n = size(float)
     @assert n == get_n_float_capacity(particle_system)
@@ -132,6 +132,51 @@ end
     return count(ps)
 end
 
+@inline function Base.split(
+    ps::AbstractHostParticleSystem{IT, FT, Dimension},
+) where {IT <: Integer, FT <: AbstractFloat, Dimension <: AbstractDimension}
+    # * split by tag
+    tags = @views ps[:Tag]
+    first_tag, last_tag = extrema(tags)
+    tag_number = last_tag - first_tag + 1
+    ps_list = Vector{typeof(ps)}(undef, tag_number)
+    for i in 1:tag_number
+        mask = @views tags .== (first_tag + i - 1)
+        ps_list[i] = ps[mask]
+    end
+    return ps_list
+end
+
+@inline function Base.split(
+    ps::AbstractHostParticleSystem{IT, FT, Dimension},
+    tag::Integer,
+) where {IT <: Integer, FT <: AbstractFloat, Dimension <: AbstractDimension}
+    mask = @views ps[:Tag] .== tag
+    return ps[mask]
+end
+
+@inline function Base.getindex(
+    ps::AbstractHostParticleSystem{IT, FT, Dimension},
+    index::BitVector,
+) where {IT <: Integer, FT <: AbstractFloat, Dimension <: AbstractDimension}
+    @assert count(ps) == length(index) "Invalid index size: $(length(index))"
+    n_particles = sum(index)
+    new_ps = ParticleSystem(
+        Dimension,
+        Environment.ParallelCPU{IT, FT}(),
+        n_particles,
+        n_particles,
+        ps.named_index_.int_capacity_,
+        ps.named_index_.float_capacity_,
+    )
+    set_n_particles!(new_ps, n_particles)
+    set!(new_ps, ps.base_.int_[1:count(ps), :][index, :])
+    set!(new_ps, ps.base_.float_[1:count(ps), :][index, :])
+    @inbounds new_ps.base_.int_[1:n_particles, :] .= ps.base_.int_[1:count(ps), :][index, :]
+    @inbounds new_ps.base_.float_[1:n_particles, :] .= ps.base_.float_[1:count(ps), :][index, :]
+    return new_ps
+end
+
 @inline function Base.getindex(
     ps::AbstractHostParticleSystem{IT, FT, Dimension},
     name::Symbol,
@@ -139,7 +184,7 @@ end
     n_particles = count(ps)
     if haskey(get_int_capacity(ps), name)
         index = get_index(ps, name)
-        capacity = get_capcacity(ps, name)
+        capacity = get_capacity(ps, name)
         if capacity == 1
             @inbounds return ps.base_.int_[1:n_particles, index]
         else
@@ -147,7 +192,7 @@ end
         end
     elseif haskey(get_float_capacity(ps), name)
         index = get_index(ps, name)
-        capacity = get_capcacity(ps, name)
+        capacity = get_capacity(ps, name)
         if capacity == 1
             @inbounds return ps.base_.float_[1:n_particles, index]
         else
@@ -167,7 +212,7 @@ end
     @assert 1 <= i <= n_particles "Index out of bounds: $i"
     if haskey(get_int_capacity(ps), name)
         index = get_index(ps, name)
-        capacity = get_capcacity(ps, name)
+        capacity = get_capacity(ps, name)
         n_particles = count(ps)
         if capacity == 1
             @inbounds return ps.base_.int_[i, index]
@@ -176,7 +221,7 @@ end
         end
     elseif haskey(get_float_capacity(ps), name)
         index = get_index(ps, name)
-        capacity = get_capcacity(ps, name)
+        capacity = get_capacity(ps, name)
         n_particles = count(ps)
         if capacity == 1
             @inbounds return ps.base_.float_[i, index]
@@ -196,7 +241,7 @@ end
     n_particles = count(ps)
     @assert haskey(get_int_capacity(ps), name) "Invalid field name: $name"
     index = get_index(ps, name)
-    capacity = get_capcacity(ps, name)
+    capacity = get_capacity(ps, name)
     @inbounds ps.base_.int_[1:n_particles, index:(index + capacity - 1)] .= IT(value)
     return nothing
 end
@@ -208,7 +253,7 @@ end
 )::Nothing where {IT <: Integer, FT <: AbstractFloat, Dimension <: AbstractDimension}
     @assert haskey(get_int_capacity(ps), name) "Invalid field name: $name"
     index = get_index(ps, name)
-    capacity = get_capcacity(ps, name)
+    capacity = get_capacity(ps, name)
     @assert size(value, 1) <= get_n_capacity(ps) "Invalid value size: $(size(value))"
     @inbounds ps.base_.int_[1:size(value, 1), index:(index + capacity - 1)] .= IT.(value)
     return nothing
@@ -222,7 +267,7 @@ end
 )::Nothing where {IT <: Integer, FT <: AbstractFloat, Dimension <: AbstractDimension}
     @assert haskey(get_int_capacity(ps), name) "Invalid field name: $name"
     index = get_index(ps, name)
-    capacity = get_capcacity(ps, name)
+    capacity = get_capacity(ps, name)
     @inbounds ps.base_.int_[i, index:(index + capacity - 1)] .= IT(value)
     return nothing
 end
@@ -235,7 +280,7 @@ end
 )::Nothing where {IT <: Integer, FT <: AbstractFloat, Dimension <: AbstractDimension}
     @assert haskey(get_int_capacity(ps), name) "Invalid field name: $name"
     index = get_index(ps, name)
-    capacity = get_capcacity(ps, name)
+    capacity = get_capacity(ps, name)
     @assert length(value) <= capacity "Invalid value size: $(length(value))"
     @inbounds ps.base_.int_[i, index:(index + capacity - 1)] .= IT.(vec(value))
     return nothing
@@ -248,7 +293,7 @@ end
 )::Nothing where {IT <: Integer, FT <: AbstractFloat, Dimension <: AbstractDimension}
     @assert haskey(get_float_capacity(ps), name) "Invalid field name: $name"
     index = get_index(ps, name)
-    capacity = get_capcacity(ps, name)
+    capacity = get_capacity(ps, name)
     @assert size(value, 1) <= get_n_capacity(ps) "Invalid value size: $(size(value))"
     @inbounds ps.base_.float_[1:size(value, 1), index:(index + capacity - 1)] .= FT.(value)
     return nothing
@@ -262,7 +307,7 @@ end
     n_particles = count(ps)
     @assert haskey(get_float_capacity(ps), name) "Invalid field name: $name"
     index = get_index(ps, name)
-    capacity = get_capcacity(ps, name)
+    capacity = get_capacity(ps, name)
     @inbounds ps.base_.float_[1:n_particles, index:(index + capacity - 1)] .= FT(value)
     return nothing
 end
@@ -275,7 +320,7 @@ end
 )::Nothing where {IT <: Integer, FT <: AbstractFloat, Dimension <: AbstractDimension}
     @assert haskey(get_float_capacity(ps), name) "Invalid field name: $name"
     index = get_index(ps, name)
-    capacity = get_capcacity(ps, name)
+    capacity = get_capacity(ps, name)
     @assert length(value) <= capacity "Invalid value size: $(length(value))"
     @inbounds ps.base_.float_[i, index:(index + capacity - 1)] .= FT.(vec(value))
     return nothing
@@ -289,7 +334,7 @@ end
 )::Nothing where {IT <: Integer, FT <: AbstractFloat, Dimension <: AbstractDimension}
     @assert haskey(get_float_capacity(ps), name) "Invalid field name: $name"
     index = get_index(ps, name)
-    capacity = get_capcacity(ps, name)
+    capacity = get_capacity(ps, name)
     @inbounds ps.base_.float_[i, index:(index + capacity - 1)] .= FT(value)
     return nothing
 end

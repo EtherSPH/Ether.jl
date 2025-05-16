@@ -156,9 +156,33 @@
             ]
         },
         {
+            "name": "vtk",
+            "base": "delta",
+            "color": "blue-900",
+            "lightColor": "blue-900",
+            "folderNames": [
+                "vtk",
+            ],
+            "rootFolderNames": [
+                "vtk"
+            ]
+        },
+        {
+            "name": "vtp",
+            "base": "delta",
+            "color": "blue-900",
+            "lightColor": "blue-900",
+            "folderNames": [
+                "vtp",
+            ],
+            "rootFolderNames": [
+                "vtp"
+            ]
+        },
+        {
             "name": "raw",
             "base": "element",
-            "color": "gray-500",
+            "color": "gray-700",
             "lightColor": "gray-700",
             "folderNames": [
                 "raw",

@@ -95,7 +95,15 @@ end
             config_dict["domain"]["last_y"],
         )
     elseif config_dict["domain"]["dimension"] == 3
-        # TODO: add 3D support
+        return Class.Domain3D{IT, FT}(
+            config_dict["domain"]["gap"],
+            config_dict["domain"]["first_x"],
+            config_dict["domain"]["first_y"],
+            config_dict["domain"]["first_z"],
+            config_dict["domain"]["last_x"],
+            config_dict["domain"]["last_y"],
+            config_dict["domain"]["last_z"],
+        )
     else
         error("Unsupported dimension: $(config_dict["domain"]["dimension"])")
     end

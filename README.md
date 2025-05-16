@@ -13,10 +13,11 @@ This project is built on top of the following packages:
 - [JLD2.jl](https://github.com/JuliaIO/JLD2.jl): store and load raw data in `h5` format
 - [JSON.jl](https://github.com/JuliaIO/JSON.jl): configure the simulation in `json` format
 - [JuliaFormatter.jl](https://github.com/domluna/JuliaFormatter.jl): format the code
-- [YAML.jl](https://github.com/JuliaData/YAML.jl): configure the simulation in `yaml` format
 - [KernelAbstractions.jl](https://github.com/JuliaGPU/KernelAbstractions.jl): an abstraction layer for parallel kernels, which is the core dependency of this package
 - [OrderedCollections.jl](https://github.com/JuliaCollections/OrderedCollections.jl): don't break the configuration order
 - [ProgressMeter.jl](https://github.com/timholy/ProgressMeter.jl): show the progress of tasks
+- [WriteVTK.jl](https://github.com/JuliaVTK/WriteVTK.jl): export calculation result as `.vtp` format
+- [YAML.jl](https://github.com/JuliaData/YAML.jl): configure the simulation in `yaml` format
 
 To run the code on gpu, one of the following backends is required:
 
