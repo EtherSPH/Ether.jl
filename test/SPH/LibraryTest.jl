@@ -36,6 +36,7 @@
         nW = neighbour_count,
         nDW = neighbour_count,
         nHInv = neighbour_count,
+        NormalVec = dim,
     )
     particle_system =
         Class.ParticleSystem(Environment.Dimension2D, parallel, n_particles, int_named_tuple, float_named_tuple;)
@@ -86,8 +87,10 @@
         SPH.Library.iDensityWeightedPressure!(@inter_args; dw = dw, coefficient = coeff)
         SPH.Library.iExtrapolatePressure!(@inter_args; w = w, p0 = 0.0, gx = 0.0, gy = -9.8)
         SPH.Library.iClassicViscosity!(@inter_args; dw = dw, mu = 1e-3)
-        SPH.Library.IArtificialViscosity!(@inter_args; dw = dw, alpha = 0.1, beta = 0.1, c = PARAMETER.c0)
+        SPH.Library.iArtificialViscosity!(@inter_args; dw = dw, alpha = 0.1, beta = 0.1, c = PARAMETER.c0)
         SPH.Library.iKernelFilter!(@inter_args; w = w)
+        SPH.Library.iCompulsive!(@inter_args; c = 0.0, h = 1.0)
+        SPH.Library.iDiffuse!(@inter_args; dw = dw, delta = 0.1, h = 1.0, c = 1.0)
         return nothing
     end
     @inline function self!(@self_args)::Nothing

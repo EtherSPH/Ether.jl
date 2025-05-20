@@ -69,7 +69,7 @@ const p0 = parameters.p0 |> parallel
 const gap0 = parameters.gap0 |> parallel
 const h0 = parameters.h0 |> parallel
 const mu0 = parameters.mu0 |> parallel
-const mu0_2 = 1000 * mu0 |> parallel
+const mu0_2 = 2 * mu0 |> parallel
 const gx = 0.0 |> parallel
 const gy = -9.8 |> parallel
 const c0 = 120.0 |> parallel
@@ -216,6 +216,7 @@ function main(step = :first)
         )
     end
     DataIO.wait!(writer)
+    finish!(progress)
     VTK.VTP.generate(writer, [:Mass, :Density, :VelocityVec, :Pressure, :Tag]; names = ["fluid", "wall"], n_threads = 4)
     return nothing
 end

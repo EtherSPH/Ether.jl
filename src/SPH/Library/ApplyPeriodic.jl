@@ -82,3 +82,5 @@ end
     sApplyPeriodic!(@self_args, domain, PeriodicBoundary2D{false, true})
     return nothing
 end
+
+# TODO: add 3D support for apply periodic boundary

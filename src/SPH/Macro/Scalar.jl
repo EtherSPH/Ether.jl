@@ -12,7 +12,7 @@ const kIntScalarDict = Dict("Tag" => ["tag"], "IsMovable" => ["is_movable", "not
 # * use in scope with `INDEX` and `FLOAT`
 const kFloatScalarDict = Dict(
     "Mass" => ["mass", "m"],
-    "Volume" => ["vol", "volume"],
+    "Volume" => ["vol", "volume", "V"],
     "Density" => ["rho", "ρ", "density"],
     "dDensity" => ["drho", "dρ", "density_ratio"],
     "Pressure" => ["p", "pressure", "P"],
@@ -21,6 +21,8 @@ const kFloatScalarDict = Dict(
     "SumWeight" => ["wv", "∑wv"], # ∑wᵢⱼVⱼ
     "SumWeightedDensity" => ["wv_rho", "∑wv_rho", "wv_ρ", "∑wv_ρ"], # ∑wᵢⱼVⱼρⱼ
     "SumWeightedPressure" => ["wv_p", "∑wv_p"], # ∑wᵢⱼVⱼPⱼ
+    "Temperature" => ["T", "temperature"],
+    "dTemperature" => ["dT", "temperature_ratio"],
 )
 # * use in scope with `INDEX` and `NI` and `INT`
 const kNeighbourIntScalarDict = Dict("nIndex" => ["n_index"])

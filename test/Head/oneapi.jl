@@ -10,7 +10,8 @@
 using Ether
 using KernelAbstractions
 import Pkg
-Pkg.add("oneAPI")
+# Pkg.add("oneAPI")
+Pkg.add(name = "oneAPI", version = "2.0.2") # temporary fix at version 2.0.2
 using oneAPI
 
 const IT = Int32

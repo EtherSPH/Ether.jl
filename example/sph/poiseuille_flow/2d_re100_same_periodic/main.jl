@@ -234,6 +234,7 @@ function main(step = :first)
         )
     end
     DataIO.wait!(writer)
+    finish!(progress)
     VTK.VTP.generate(writer, [:Mass, :Density, :VelocityVec, :Pressure, :Tag]; names = ["fluid", "wall"], n_threads = 4)
     return nothing
 end

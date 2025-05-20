@@ -44,5 +44,6 @@ include("Pressure.jl")
 include("Viscosity.jl")
 include("Filter.jl")
 include("ApplyPeriodic.jl")
+include("Wall.jl")
 
 end # module Library

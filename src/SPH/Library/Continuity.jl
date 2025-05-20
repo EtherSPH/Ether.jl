@@ -21,6 +21,24 @@
     return nothing
 end
 
+@inline function iDiffuse!(
+    ::Type{DIMENSION},
+    I::Integer,
+    NI::Integer,
+    INT,
+    FLOAT,
+    INDEX::NamedTuple,
+    PARAMETER;
+    dw::Real = 0,
+    delta::Real = 0.1,
+    h::Real = 0,
+    c::Real = 0,
+)::Nothing where {N, DIMENSION <: AbstractDimension{N}}
+    @inbounds @drho(@i) +=
+        2 * @float(delta) * @float(h) * @float(c) * @float(dw) * @vol(@j) * (@rho(@i) - @rho(@j)) / @r(@ij)
+    return nothing
+end
+
 @inline function iClassicContinuity!(
     ::Type{DIMENSION},
     I::Integer,

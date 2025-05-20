@@ -26,7 +26,7 @@
     return nothing
 end
 
-@inline function IArtificialViscosity!(
+@inline function iArtificialViscosity!(
     ::Type{DIMENSION},
     I::Integer,
     NI::Integer,

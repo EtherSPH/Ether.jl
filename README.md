@@ -31,3 +31,8 @@ Scripts to build these backends are included in `script/build` folder. Supposing
 ```bash
 julia script/build/metal.jl
 ```
+
+Some memos:
+
+- 2025.05.19: currently fix [oneAPI.jl](https://github.com/JuliaGPU/oneAPI.jl) to version "2.0.2"
+- ...

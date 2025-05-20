@@ -1,6 +1,6 @@
 #=
   @ author: bcynuaa <bcynuaa@163.com>
-  @ date: 2025/05/12 15:53:12
+  @ date: 2025/05/20 15:30:59
   @ license: MIT
   @ language: Julia
   @ declaration: `Ether.jl` A particle-based simulation framework running on both cpu and gpu.
@@ -17,7 +17,7 @@ using Ether.Macro
 using Ether.SPH.Macro
 
 config_dict = JSON.parsefile(
-    joinpath(@__DIR__, "../../..//result/sph/cruchaga/3d_same/config/config.json");
+    joinpath(@__DIR__, "../../..//result/sph/cruchaga/3d_extrapolation/config/config.json");
     dicttype = OrderedDict,
 )
 # * cpu
@@ -75,13 +75,14 @@ const gy = 0.0 |> parallel
 const gz = -9.8 |> parallel
 const c0 = 10 * sqrt(2 * abs(gz) * parameters.fluid_z_len) |> parallel
 const c02 = c0 * c0 |> parallel
+const c02_inv = parallel(1 / c02)
 const sph_kernel = SPH.Kernel.CubicSpline{IT, FT, Int(dimension)}()
 
 const total_time = 2.0 |> parallel
 const total_time_inv = parallel(1 / total_time)
 const dt = parallel(0.2 * h0 / c0)
-const output_interval = 100
-const filter_interval = 20
+const output_interval = 200
+const filter_interval = 10
 
 @inline eos(rho::Real) = c02 * (rho - rho0) + p0
 
@@ -91,12 +92,13 @@ const filter_interval = 20
     @with_neighbours @inbounds if @tag(@i) == FLUID_TAG && @tag(@j) == FLUID_TAG
         SPH.Library.iValueGradient!(@inter_args, sph_kernel)
         SPH.Library.iClassicContinuity!(@inter_args; dw = @dw(@ij))
+        SPH.Library.iDiffuse!(@inter_args; dw = @dw(@ij), delta = @float(0.1), h = @h(@i), c = c0)
     elseif @tag(@i) == FLUID_TAG && @tag(@j) == WALL_TAG
         SPH.Library.iValueGradient!(@inter_args, sph_kernel)
         SPH.Library.iBalancedContinuity!(@inter_args; dw = @dw(@ij))
     elseif @tag(@i) == WALL_TAG && @tag(@j) == FLUID_TAG
         SPH.Library.iValueGradient!(@inter_args, sph_kernel)
-        SPH.Library.iBalancedContinuity!(@inter_args; dw = @dw(@ij))
+        SPH.Library.iExtrapolatePressure!(@inter_args; w = @w(@ij), p0 = p0, gx = gx, gy = gy, gz = gz)
     end
     return nothing
 end
@@ -108,9 +110,7 @@ end
         @inbounds @p(@i) = eos(@rho(@i))
         return nothing
     elseif @tag(@i) == WALL_TAG
-        SPH.Library.sContinuity!(@self_args; dt = dt)
-        SPH.Library.sVolume!(@self_args)
-        @inbounds @p(@i) = eos(@rho(@i))
+        SPH.Library.sExtrapolatePressure!(@self_args; p0 = p0)
         return nothing
     end
     return nothing
@@ -120,6 +120,7 @@ end
     @inbounds if @tag(@i) == FLUID_TAG && @tag(@j) == FLUID_TAG
         SPH.Library.iClassicPressure!(@inter_args; dw = @dw(@ij))
         SPH.Library.iClassicViscosity!(@inter_args; dw = @dw(@ij), mu = mu0)
+        SPH.Library.iArtificialViscosity!(@inter_args; dw = @dw(@ij), alpha = FT(0.1), beta = FT(0.1), c = c0)
         return nothing
     elseif @tag(@i) == FLUID_TAG && @tag(@j) == WALL_TAG
         SPH.Library.iBalancedPressure!(@inter_args; dw = @dw(@ij))

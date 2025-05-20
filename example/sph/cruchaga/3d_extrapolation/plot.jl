@@ -1,6 +1,6 @@
 #=
   @ author: bcynuaa <bcynuaa@163.com>
-  @ date: 2025/05/13 15:52:18
+  @ date: 2025/05/20 16:13:13
   @ license: MIT
   @ language: Julia
   @ declaration: `Ether.jl` A particle-based simulation framework running on both cpu and gpu.
@@ -10,7 +10,7 @@
 using Ether
 using CairoMakie
 
-result_path = joinpath(@__DIR__, "../../../result/sph/cruchaga/3d_same")
+result_path = joinpath(@__DIR__, "../../../result/sph/cruchaga/3d_extrapolation/")
 writer = DataIO.Writer(path_ = result_path);
 DataIO.readRaw!(writer)
 

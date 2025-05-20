@@ -9,6 +9,7 @@
 
 using Ether
 using KernelAbstractions
+import Pkg
 
 const IT = Int32
 const FT = Float32
