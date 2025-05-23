@@ -1,6 +1,6 @@
 #=
   @ author: bcynuaa <bcynuaa@163.com>
-  @ date: 2025/05/19 19:53:14
+  @ date: 2025/05/21 17:21:29
   @ license: MIT
   @ language: Julia
   @ declaration: `Ether.jl` A particle-based simulation framework running on both cpu and gpu.
@@ -17,7 +17,7 @@ using Ether.Macro
 using Ether.SPH.Macro
 
 config_dict = JSON.parsefile(
-    joinpath(@__DIR__, "../../../result/sph/lid_driven_cavity/2d_re100_compulsive/config/config.json");
+    joinpath(@__DIR__, "../../../result/sph/thermal_cavity/ra1e3_compulsive/config/config.json");
     dicttype = OrderedDict,
 )
 # * cpu
@@ -60,10 +60,10 @@ hps = Class.mirror(dps) # host particle system
 ns = DataIO.NeighbourSystem(config_dict, parallel)
 # * ===================== writer ===================== * #
 writer = DataIO.Writer(config_dict)
-# * ===================== parameters ===================== * #
 const parameters = Utility.dict2namedtuple(config_dict["parameters"])
 const FLUID_TAG = parameters.FLUID_TAG |> parallel
 const WALL_TAG = parameters.WALL_TAG |> parallel
+const THERMOSTATIC_WALL_TAG = parameters.THERMOSTATIC_WALL_TAG |> parallel
 const rho0 = parameters.rho0 |> parallel
 const p0 = parameters.p0 |> parallel
 const gap0 = parameters.gap0 |> parallel
@@ -72,15 +72,22 @@ const mu0 = parameters.mu0 |> parallel
 const mu0_2 = 2 * mu0 |> parallel
 const c0 = parameters.c0 |> parallel
 const c02 = c0 * c0 |> parallel
+const kappa = parameters.kappa |> parallel
+const cp = parameters.cp |> parallel
+const beta = parameters.beta |> parallel
+const g = parameters.gravity |> parallel
+const t0 = parameters.tmean |> parallel
+const betag = beta * g |> parallel
 const sph_kernel = SPH.Kernel.CubicSpline{IT, FT, Int(dimension)}()
 
-const total_time = parallel(20.0)
+const total_time = parallel(50.0)
 const total_time_inv = parallel(1 / total_time)
 const dt = parallel(0.2 * h0 / c0)
 const output_interval = 200
 const filter_interval = 20
 
 @inline eos(rho::Real) = c02 * (rho - rho0) + p0
+@inline gravity(t::Real) = betag * (t - t0)
 
 # * ===================== particle action definition ===================== * #
 
@@ -90,8 +97,9 @@ const filter_interval = 20
         SPH.Library.iClassicContinuity!(@inter_args; dw = @dw(@ij))
     elseif @tag(@i) == FLUID_TAG && @tag(@j) == WALL_TAG
         SPH.Library.iValueGradient!(@inter_args, sph_kernel)
+    else
+        SPH.Library.iValueGradient!(@inter_args, sph_kernel)
     end
-    return nothing
 end
 
 @inline function sContinuity!(@self_args)::Nothing
@@ -104,25 +112,33 @@ end
     return nothing
 end
 
-@inline function iMomentum!(@inter_args)::Nothing
+@inline function iMomentumAndThermal!(@inter_args)::Nothing
     @inbounds if @tag(@i) == FLUID_TAG && @tag(@j) == FLUID_TAG
         SPH.Library.iClassicPressure!(@inter_args; dw = @dw(@ij))
         SPH.Library.iClassicViscosity!(@inter_args; dw = @dw(@ij), mu = mu0)
+        SPH.Library.iClassicThermal!(@inter_args; dw = @dw(@ij), h = @h(@i), kappa = kappa, cp = cp)
         return nothing
     elseif @tag(@i) == FLUID_TAG && @tag(@j) == WALL_TAG
         SPH.Library.iClassicPressure!(@inter_args; dw = @dw(@ij))
         SPH.Library.iClassicViscosity!(@inter_args; dw = @dw(@ij), mu = mu0)
         SPH.Library.iCompulsive!(@inter_args; c = c0, h = h0)
         return nothing
+    elseif @tag(@i) == FLUID_TAG && @tag(@j) == THERMOSTATIC_WALL_TAG
+        SPH.Library.iClassicPressure!(@inter_args; dw = @dw(@ij))
+        SPH.Library.iClassicViscosity!(@inter_args; dw = @dw(@ij), mu = mu0)
+        SPH.Library.iCompulsive!(@inter_args; c = c0, h = h0)
+        SPH.Library.iClassicThermal!(@inter_args; dw = @dw(@ij), h = @h(@i), kappa = kappa, cp = cp)
+        return nothing
     end
     return nothing
 end
 
-@inline function sMomentum!(@self_args)::Nothing
+@inline function sMomentumAndThermal!(@self_args)::Nothing
     @inbounds if @tag(@i) == FLUID_TAG
+        SPH.Library.sThermal!(@self_args; dt = dt)
+        SPH.Library.sGravity!(@self_args; gy = gravity(@T(@i)))
         SPH.Library.sAccelerateMove!(@self_args; dt = dt)
     end
-    return nothing
 end
 
 @inline function iFilter!(@inter_args)::Nothing
@@ -167,8 +183,8 @@ function main(step = :first)
         t += dt
         step += 1
         Algorithm.selfaction!(dps, sContinuity!; n_threads = n_threads)
-        Algorithm.interaction!(dps, iMomentum!; n_threads = n_threads)
-        Algorithm.selfaction!(dps, sMomentum!; n_threads = n_threads)
+        Algorithm.interaction!(dps, iMomentumAndThermal!; n_threads = n_threads)
+        Algorithm.selfaction!(dps, sMomentumAndThermal!; n_threads = n_threads)
         Algorithm.search!(
             dps,
             domain,

@@ -37,6 +37,8 @@
         nDW = neighbour_count,
         nHInv = neighbour_count,
         NormalVec = dim,
+        Temperature = 1,
+        dTemperature = 1,
     )
     particle_system =
         Class.ParticleSystem(Environment.Dimension2D, parallel, n_particles, int_named_tuple, float_named_tuple;)
@@ -86,11 +88,19 @@
         SPH.Library.iBalancedPressure!(@inter_args; dw = dw, coefficient = coeff)
         SPH.Library.iDensityWeightedPressure!(@inter_args; dw = dw, coefficient = coeff)
         SPH.Library.iExtrapolatePressure!(@inter_args; w = w, p0 = 0.0, gx = 0.0, gy = -9.8)
-        SPH.Library.iClassicViscosity!(@inter_args; dw = dw, mu = 1e-3)
-        SPH.Library.iArtificialViscosity!(@inter_args; dw = dw, alpha = 0.1, beta = 0.1, c = PARAMETER.c0)
+        SPH.Library.iClassicViscosity!(@inter_args; dw = dw, mu = 1e-3, h = PARAMETER.h0)
+        SPH.Library.iArtificialViscosity!(
+            @inter_args;
+            dw = dw,
+            alpha = 0.1,
+            beta = 0.1,
+            c = PARAMETER.c0,
+            h = PARAMETER.h0,
+        )
         SPH.Library.iKernelFilter!(@inter_args; w = w)
         SPH.Library.iCompulsive!(@inter_args; c = 0.0, h = 1.0)
         SPH.Library.iDiffuse!(@inter_args; dw = dw, delta = 0.1, h = 1.0, c = 1.0)
+        SPH.Library.iClassicThermal!(@inter_args; dw = dw, kappa = 1.0, cp = 1.0, h = PARAMETER.h0)
         return nothing
     end
     @inline function self!(@self_args)::Nothing
@@ -109,6 +119,7 @@
         SPH.Library.sApplyPeriodic!(@self_args, domain, Class.PeriodicBoundary2D{true, false})
         SPH.Library.sApplyPeriodic!(@self_args, domain, Class.PeriodicBoundary2D{false, true})
         SPH.Library.sApplyPeriodic!(@self_args, domain, Class.PeriodicBoundary2D{true, true})
+        SPH.Library.sThermal!(@self_args; dt = 0.1)
         return nothing
     end
     Algorithm.interaction!(particle_system, inter!; parameter = param)
