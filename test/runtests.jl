@@ -14,7 +14,7 @@ using Ether
 using Ether.Macro
 
 # support for `cpu`, `cuda`, `rocm`, `oneapi`, `metal`
-const DEVICE = "oneapi"
+const DEVICE = "cpu"
 include("Head/$(DEVICE).jl")
 @info "test on backend: $DEVICE"
 
