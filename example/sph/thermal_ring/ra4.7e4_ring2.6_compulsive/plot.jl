@@ -1,6 +1,6 @@
 #=
   @ author: bcynuaa <bcynuaa@163.com>
-  @ date: 2025/05/23 16:32:27
+  @ date: 2025/05/27 16:34:00
   @ license: MIT
   @ language: Julia
   @ declaration: `Ether.jl` A particle-based simulation framework running on both cpu and gpu.
@@ -10,7 +10,7 @@
 using Ether
 using CairoMakie
 
-result_path = joinpath(@__DIR__, "../../../result/sph/thermal_cavity/ra1e3_compulsive")
+result_path = joinpath(@__DIR__, "../../../result/sph/thermal_ring/ra4.7e4_ring2.6_compulsive")
 writer = DataIO.Writer(path_ = result_path);
 DataIO.readRaw!(writer)
 
@@ -23,9 +23,7 @@ u = ps[:VelocityVec][:, 1]
 v = ps[:VelocityVec][:, 2]
 vel = sqrt.(u .^ 2 .+ v .^ 2)
 vel[tag .== 2] .= NaN;
-vel[tag .== 3] .= NaN;
 T = ps[:Temperature];
-T[tag .== 2] .= NaN;
 
 with_theme(theme_latexfonts()) do
     t = appendix["TimeValue"]
@@ -42,7 +40,7 @@ with_theme(theme_latexfonts()) do
         xtickalign = 1,
         ytickalign = 1,
     )
-    s1 = scatter!(axes1, x, y, color = vel, colormap = :roma, markersize = 8, nan_color = :gray, marker = :rect)
+    s1 = scatter!(axes1, x, y, color = vel, colormap = :roma, markersize = 3, nan_color = :gray, marker = :rect)
     Colorbar(fig[1, 2], s1, height = 300, width = 10, label = "Velocity", ticklabelsize = 16, labelpadding = 5)
     axes2 = Axis(
         fig[1, 3],
@@ -60,8 +58,8 @@ with_theme(theme_latexfonts()) do
         x,
         y,
         color = T,
-        colormap = :roma,
-        markersize = 8,
+        colormap = Reverse(:roma),
+        markersize = 3,
         nan_color = :gray,
         marker = :rect,
     )
