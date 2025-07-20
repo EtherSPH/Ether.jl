@@ -64,6 +64,7 @@
     ps = DataIO.load(writer; appendix = appendix, step = :last, format = :json)
     @test Class.count(ps) == 10
 
+    GC.gc()
     DataIO.rmdir(writer)
     @test !isdir(test_path)
     @test !isdir(joinpath(test_path, "config"))
